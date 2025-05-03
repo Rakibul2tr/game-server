@@ -9,11 +9,7 @@ const io = new Server(server);
 
 mongoose
   .connect(
-    "mongodb+srv://rakibul2tr:rdUYI4rm70R2YsS7@cluster0.mnjws4o.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
-    {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    }
+    "mongodb+srv://rakibul2tr:rdUYI4rm70R2YsS7@cluster0.mnjws4o.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
   )
   .then(() => {
     console.log("✅ MongoDB connected successfully");
@@ -34,29 +30,30 @@ const Round = mongoose.model("Round", roundSchema);
 // Emit round every 30s
 let roundNumber = 1;
 let previousIndex = null;
+
 setInterval(async () => {
   let winCardIndex;
-   do {
-     winCardIndex = Math.floor(Math.random() * 8) + 51; // 51 to 58
-   } while (winCardIndex === previousIndex);
+  do {
+    winCardIndex = Math.floor(Math.random() * 8) + 51; // 51 to 58
+  } while (winCardIndex === previousIndex);
 
-   previousIndex = winCardIndex;
+  previousIndex = winCardIndex;
 
-   const round = new Round({ winCardIndex, roundNumber });
+  const round = new Round({ winCardIndex, roundNumber });
   await round.save();
+
   const data = {
     winCardIndex,
     roundNumber,
     time: new Date().toISOString(),
   };
-    // console.log("Emitting new round data:", data); 
 
-   io.emit("new-round", data);
-
+  io.emit("new-round", data);
   roundNumber++;
 }, 30000);
 
-// Start server
-server.listen(3000, () => {
-  console.log("Server running on port 3000");
+// Start server using dynamic port
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
