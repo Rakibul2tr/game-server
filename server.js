@@ -49,12 +49,12 @@ setInterval(async () => {
     roundNumber,
     time: new Date().toISOString(),
   };
-    console.log("Emitting new round data:", data); 
+    // console.log("Emitting new round data:", data); 
 
    io.emit("new-round", data);
 
   roundNumber++;
-}, 10000);
+}, 30000);
 
 // Start server
 server.listen(3000, () => {
