@@ -47,6 +47,8 @@ setInterval(async () => {
     roundNumber,
     time: new Date().toISOString(),
   };
+  console.log('round',data);
+  
 
   io.emit("new-round", data);
   roundNumber++;
