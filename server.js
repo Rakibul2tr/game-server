@@ -2,6 +2,8 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const mongoose = require("mongoose");
+const User = require("./schemas/userSchema");
+const Bet = require("./schemas/betSchema");
 
 const app = express();
 const server = http.createServer(app);
@@ -62,6 +64,112 @@ app.get("/rounds", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch rounds" });
   }
 });
+
+app.post("/signup", async (req, res) => {
+  try {
+    const { googleId, name, email, photo } = req.body;
+
+    // Check if user already exists
+    let user = await User.findOne({ googleId });
+
+    if (user) {
+      // User exists — treat as login
+      return res.status(200).json({
+        message: "User logged in successfully",
+        user,
+      });
+    }
+
+    // Create new user
+    user = new User({ googleId, name, email, photo,balance:200 });
+    await user.save();
+
+    res.status(201).json({
+      message: "User signed up successfully",
+      user,
+    });
+  } catch (error) {
+    console.error("Signup/Login Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// API to handle user bets
+app.post("/bet", async (req, res) => {
+  try {
+    const { userId, roundNumber, winAmount, itemName, itemId } = req.body;
+
+    // Fetch the current round from the database
+    const currentRound = await Round.findOne({ roundNumber }).sort({ createdAt: -1 });
+
+    if (!currentRound) {
+      return res.status(400).json({ error: "Round number not found" });
+    }
+
+    // Fetch the user from the database
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Update user balance by adding the winAmount
+    user.balance += winAmount;
+    await user.save();
+
+    // Save the bet details in the Bet collection
+    const bet = new Bet({
+      userId,
+      roundNumber,
+      winAmount,
+      itemName,
+      itemId,
+    });
+    await bet.save();
+
+    // Return the success response
+    res.status(201).json({
+      message: "Bet placed and balance updated successfully",
+      user: {
+        id: user._id,
+        name: user.name,
+        balance: user.balance,
+      },
+      bet,
+    });
+  } catch (error) {
+    console.error("Betting Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// API to get user information
+app.get("/user/:id", async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Fetch the user from the database by userId
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Return the user information (name, email, balance)
+    res.status(200).json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      balance: user.balance,
+      photo:user.photo
+    });
+  } catch (error) {
+    console.error("Get User Info Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
 
 // Start server using dynamic port
 const PORT = process.env.PORT || 3000;
