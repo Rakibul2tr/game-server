@@ -4,10 +4,13 @@ const { Server } = require("socket.io");
 const mongoose = require("mongoose");
 const User = require("./schemas/userSchema");
 const Bet = require("./schemas/betSchema");
+const cron = require("node-cron");
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
+app.use(express.json());
+
 
 mongoose
   .connect(
@@ -29,9 +32,11 @@ const roundSchema = new mongoose.Schema({
 
 const Round = mongoose.model("Round", roundSchema);
 
-// Emit round every 30s
+
+// Global round number
 let roundNumber = 1;
 let previousIndex = null;
+// Emit round every 30 seconds
 
 setInterval(async () => {
   let winCardIndex;
@@ -49,12 +54,25 @@ setInterval(async () => {
     roundNumber,
     time: new Date().toISOString(),
   };
-  console.log('round',data);
-  
+  console.log("round", data);
 
   io.emit("new-round", data);
   roundNumber++;
 }, 30000);
+
+// 🔄 Reset round count and delete old rounds at 12:00 AM every day
+cron.schedule("0 0 * * *", async () => {
+  try {
+    console.log("⏰ Resetting round count and deleting old rounds...");
+
+    await Round.deleteMany({}); // Delete all previous rounds
+    roundNumber = 1; // Reset round counter
+
+    console.log("✅ Round reset successful");
+  } catch (err) {
+    console.error("❌ Failed to reset rounds:", err);
+  }
+});
 
 app.get("/rounds", async (req, res) => {
   try {
