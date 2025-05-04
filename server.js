@@ -54,6 +54,15 @@ setInterval(async () => {
   roundNumber++;
 }, 30000);
 
+app.get("/rounds", async (req, res) => {
+  try {
+    const rounds = await Round.find().sort({ createdAt: -1 }); // latest first
+    res.json(rounds);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch rounds" });
+  }
+});
+
 // Start server using dynamic port
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
