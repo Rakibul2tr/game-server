@@ -135,7 +135,7 @@ app.post("/signup", async (req, res) => {
 // API to handle user bets
 app.post("/bet", async (req, res) => {
   try {
-    const { userId, roundNumber, winAmount, itemName, itemId } = req.body;
+    const { userId, roundNumber, winAmount } = req.body;
 
     // Fetch the current round from the database
     const currentRound = await Round.findOne({ roundNumber }).sort({ createdAt: -1 });
@@ -159,9 +159,7 @@ app.post("/bet", async (req, res) => {
     const bet = new Bet({
       userId,
       roundNumber,
-      winAmount,
-      itemName,
-      itemId,
+      winAmount
     });
     await bet.save();
 
