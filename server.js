@@ -5,11 +5,13 @@ const mongoose = require("mongoose");
 const User = require("./schemas/userSchema");
 const Bet = require("./schemas/betSchema");
 const cron = require("node-cron");
+const Fruit = require("./schemas/fruitSchema");
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 app.use(express.json());
+
 
 
 mongoose
@@ -22,11 +24,14 @@ mongoose
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err);
   });
+  
 
 // Schema
 const roundSchema = new mongoose.Schema({
   winCardIndex: Number,
   roundNumber: Number,
+  fruitName: String, 
+  fruitImage: String,
   createdAt: { type: Date, default: Date.now },
 });
 
@@ -45,8 +50,23 @@ setInterval(async () => {
   } while (winCardIndex === previousIndex);
 
   previousIndex = winCardIndex;
+  // 🔍 Fruits collection থেকে ফল বের করো
+  const matchedFruit = await Fruit.findOne({ winCardIndex });
 
-  const round = new Round({ winCardIndex, roundNumber });
+  if (!matchedFruit) {
+    console.error(
+      "❌ Matching fruit not found in DB for winCardIndex:",
+      winCardIndex
+    );
+    return;
+  }
+  // ✅ Round 
+  const round = new Round({
+    winCardIndex,
+    roundNumber,
+    fruitName: matchedFruit.name,
+    fruitImage: matchedFruit.image,
+  });
   await round.save();
 
   const data = {
