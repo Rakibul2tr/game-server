@@ -108,7 +108,7 @@ app.post("/signup", async (req, res) => {
     const { googleId, name, email, photo } = req.body;
 
     // Check if user already exists
-    let user = await User.findOne({ googleId });
+    let user = await User.findOne({ email });
 
     if (user) {
       // User exists — treat as login
