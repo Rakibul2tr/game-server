@@ -227,19 +227,19 @@ app.post("/place-bet", async (req, res) => {
    return res.status(400).json({ error: "Missing userId or betAmount" });
  }
     // Fetch the user from the database
-    const user = await User.findById(userId);
+    const user = await User.findById(parseInt(userId));
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
     // Check if the user has enough balance
-    if (user.balance < betAmount) {
+    if (user.balance < parseInt(betAmount)) {
       return res.status(400).json({ error: "Insufficient balance" });
     }
 
     // Deduct the bet amount from the user's balance
-    user.balance -= betAmount;
+    user.balance -= parseInt(betAmount);
     await user.save();
 
     // Return the success response
