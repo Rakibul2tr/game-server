@@ -94,6 +94,9 @@ cron.schedule("0 0 * * *", async () => {
   }
 });
 
+app.get("/", (req, res) => {
+  res.send("Hello Developer");
+});
 app.get("/rounds", async (req, res) => {
   try {
     const rounds = await Round.find().sort({ createdAt: -1 }); // latest first
