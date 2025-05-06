@@ -7,6 +7,7 @@ const User = require("./schemas/userSchema");
 const Bet = require("./schemas/betSchema");
 const cron = require("node-cron");
 const Fruit = require("./schemas/fruitSchema");
+const { log } = require("console");
 
 const app = express();
 const server = http.createServer(app);
@@ -218,8 +219,10 @@ app.get("/user/:id", async (req, res) => {
 
 // API to place a bet and deduct balance
 app.post("/place-bet", async (req, res) => {
+  log("Place Bet API called",req.body);
   try {
-    const { userId, betAmount } = req.body;
+
+    const { userId, betAmount,roundNumber } = req.body;
  if (!userId || !betAmount) {
    return res.status(400).json({ error: "Missing userId or betAmount" });
  }
