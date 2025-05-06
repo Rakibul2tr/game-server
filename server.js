@@ -218,16 +218,16 @@ app.get("/user/:id", async (req, res) => {
 });
 
 // API to place a bet and deduct balance
-app.post("/place-bet", async (req, res) => {
+app.post("/placeBet", async (req, res) => {
   log("Place Bet API called",req.body);
   try {
 
-    const { userId, betAmount,roundNumber } = req.body;
+    const { userId, betAmount } = req.body;
  if (!userId || !betAmount) {
    return res.status(400).json({ error: "Missing userId or betAmount" });
  }
     // Fetch the user from the database
-    const user = await User.findById(parseInt(userId));
+    const user = await User.findById(userId);
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
