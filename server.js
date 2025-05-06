@@ -205,6 +205,42 @@ app.get("/user/:id", async (req, res) => {
   }
 });
 
+// API to place a bet and deduct balance
+app.post("/place-bet", async (req, res) => {
+  try {
+    const { userId, betAmount } = req.body;
+
+    // Fetch the user from the database
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Check if the user has enough balance
+    if (user.balance < betAmount) {
+      return res.status(400).json({ error: "Insufficient balance" });
+    }
+
+    // Deduct the bet amount from the user's balance
+    user.balance -= betAmount;
+    await user.save();
+
+    // Return the success response
+    res.status(200).json({
+      message: "Bet placed successfully",
+      user: {
+        id: user._id,
+        name: user.name,
+        balance: user.balance,
+      },
+    });
+  } catch (error) {
+    console.error("Place Bet Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 
 
 // Start server using dynamic port
