@@ -209,7 +209,9 @@ app.get("/user/:id", async (req, res) => {
 app.post("/place-bet", async (req, res) => {
   try {
     const { userId, betAmount } = req.body;
-
+ if (!userId || !betAmount) {
+   return res.status(400).json({ error: "Missing userId or betAmount" });
+ }
     // Fetch the user from the database
     const user = await User.findById(userId);
 
