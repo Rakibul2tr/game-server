@@ -219,7 +219,7 @@ app.get("/user/:id", async (req, res) => {
 
 // API to place a bet and deduct balance
 app.post("/placeBet", async (req, res) => {
-  log("Place Bet API called",req.body);
+  // log("Place Bet API called",req.body);
   try {
 
     const { userId, betAmount } = req.body;
