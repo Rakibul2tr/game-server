@@ -1,5 +1,6 @@
 const express = require("express");
 const http = require("http");
+const cors = require("cors");
 const { Server } = require("socket.io");
 const mongoose = require("mongoose");
 const User = require("./schemas/userSchema");
@@ -9,9 +10,16 @@ const Fruit = require("./schemas/fruitSchema");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+// const io = new Server(server);
 app.use(express.json());
+app.use(cors());
 
+ const io = new Server(server, {
+   cors: {
+     origin: "*", // or specify your frontend URL
+     methods: ["GET", "POST"],
+   },
+ });
 
 
 mongoose
@@ -24,7 +32,7 @@ mongoose
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err);
   });
-  
+
 
 // Schema
 const roundSchema = new mongoose.Schema({
