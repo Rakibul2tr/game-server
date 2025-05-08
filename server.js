@@ -328,39 +328,39 @@ const initRoundNumber = async () => {
 initRoundNumber();
 
 // --- Round Generator: Emit every 30 seconds ---
-// setInterval(async () => {
-//   let winCardIndex;
+setInterval(async () => {
+  let winCardIndex;
 
-//   do {
-//     winCardIndex = Math.floor(Math.random() * 8) + 51; // random index between 51-58
-//   } while (winCardIndex === previousIndex);
+  do {
+    winCardIndex = Math.floor(Math.random() * 8) + 51; // random index between 51-58
+  } while (winCardIndex === previousIndex);
 
-//   previousIndex = winCardIndex;
+  previousIndex = winCardIndex;
 
-//   const matchedFruit = await Fruit.findOne({ winCardIndex });
-//   if (!matchedFruit) {
-//     return console.error("❌ Fruit not found for index:", winCardIndex);
-//   }
+  const matchedFruit = await Fruit.findOne({ winCardIndex });
+  if (!matchedFruit) {
+    return console.error("❌ Fruit not found for index:", winCardIndex);
+  }
 
-//   const round = new Round({
-//     winCardIndex,
-//     roundNumber,
-//     fruitName: matchedFruit.name,
-//     fruitImage: matchedFruit.image,
-//   });
+  const round = new Round({
+    winCardIndex,
+    roundNumber,
+    fruitName: matchedFruit.name,
+    fruitImage: matchedFruit.image,
+  });
 
-//   await round.save();
+  await round.save();
 
-//   const data = {
-//     winCardIndex,
-//     roundNumber,
-//     time: new Date().toISOString(),
-//   };
+  const data = {
+    winCardIndex,
+    roundNumber,
+    time: new Date().toISOString(),
+  };
 
-//   console.log("🎯 New Round:", data);
-//   io.emit("new-round", data);
-//   roundNumber++;
-// }, 30000);
+  console.log("🎯 New Round:", data);
+  io.emit("new-round", data);
+  roundNumber++;
+}, 30000);
 
 // --- Daily Reset at 12:00 AM ---
 cron.schedule("0 0 * * *", async () => {
