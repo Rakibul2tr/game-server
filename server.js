@@ -328,45 +328,46 @@ const initRoundNumber = async () => {
 initRoundNumber();
 
 // --- Round Generator: Emit every 30 seconds ---
-setInterval(async () => {
-  let winCardIndex;
+// setInterval(async () => {
+//   let winCardIndex;
 
-  do {
-    winCardIndex = Math.floor(Math.random() * 8) + 51; // random index between 51-58
-  } while (winCardIndex === previousIndex);
+//   do {
+//     winCardIndex = Math.floor(Math.random() * 8) + 51; // random index between 51-58
+//   } while (winCardIndex === previousIndex);
 
-  previousIndex = winCardIndex;
+//   previousIndex = winCardIndex;
 
-  const matchedFruit = await Fruit.findOne({ winCardIndex });
-  if (!matchedFruit) {
-    return console.error("❌ Fruit not found for index:", winCardIndex);
-  }
+//   const matchedFruit = await Fruit.findOne({ winCardIndex });
+//   if (!matchedFruit) {
+//     return console.error("❌ Fruit not found for index:", winCardIndex);
+//   }
 
-  const round = new Round({
-    winCardIndex,
-    roundNumber,
-    fruitName: matchedFruit.name,
-    fruitImage: matchedFruit.image,
-  });
+//   const round = new Round({
+//     winCardIndex,
+//     roundNumber,
+//     fruitName: matchedFruit.name,
+//     fruitImage: matchedFruit.image,
+//   });
 
-  await round.save();
+//   await round.save();
 
-  const data = {
-    winCardIndex,
-    roundNumber,
-    time: new Date().toISOString(),
-  };
+//   const data = {
+//     winCardIndex,
+//     roundNumber,
+//     time: new Date().toISOString(),
+//   };
 
-  console.log("🎯 New Round:", data);
-  io.emit("new-round", data);
-  roundNumber++;
-}, 30000);
+//   console.log("🎯 New Round:", data);
+//   io.emit("new-round", data);
+//   roundNumber++;
+// }, 30000);
 
 // --- Daily Reset at 12:00 AM ---
 cron.schedule("0 0 * * *", async () => {
   try {
     console.log("⏰ Resetting round count and deleting all old rounds...");
     await Round.deleteMany({});
+    await Bet.deleteMany({})
     roundNumber = 1;
     console.log("✅ Round reset successful");
   } catch (err) {
@@ -480,6 +481,60 @@ app.get("/user/:id", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+app.get("/winners/:roundNumber", async (req, res) => {
+  console.log('req.params',req.params);
+  
+  try {
+    const { roundNumber } = req.params;
+
+    // Find bets of that round, sorted by winAmount descending
+    const topBets = await Bet.find({ roundNumber })
+      .sort({ winAmount: -1 })
+      .limit(5)
+      .lean(); // lean makes it faster
+
+    const userIds = topBets.map((bet) => bet.userId);
+
+    // Fetch user details
+    const users = await User.find({ _id: { $in: userIds } })
+      .select("name photo") // only necessary fields
+      .lean();
+
+    // Map back with winAmount
+    const winners = topBets.map((bet) => {
+      const user = users.find(
+        (u) => u._id.toString() === bet.userId.toString()
+      );
+
+      // Fallback if user not found (e.g. deleted)
+      if (!user) {
+        return {
+          userId: bet.userId,
+          name: "Unknown",
+          balance: 0,
+          photo: null,
+          winAmount: bet.winAmount,
+        };
+      }
+
+      return {
+        userId: user._id,
+        name: user.name,
+        balance: user.balance,
+        photo: user.photo,
+        winAmount: bet.winAmount,
+      };
+    });
+
+
+    res.status(200).json({ roundNumber, winners });
+  } catch (err) {
+    console.error("Winner API Error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 
 // --- Start Server ---
 const PORT = process.env.PORT || 3000;
