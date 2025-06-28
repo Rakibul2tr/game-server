@@ -183,7 +183,7 @@ setInterval(async () => {
     fruitName: matchedFruit.name,
     fruitImage: matchedFruit.image,
   });
-  // await round.save(); // ✅ Save চালু রাখলাম
+  await round.save(); // ✅ Save চালু রাখলাম
 
   // 📡 Emit to Frontend
   const data = {
