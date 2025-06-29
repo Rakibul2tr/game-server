@@ -198,7 +198,7 @@ setInterval(async () => {
   io.emit("new-round", data);
 
   roundNumber++;
-}, 10000); // প্রতি 10 সেকেন্ডে একবার চালায়
+}, 30000); // প্রতি 10 সেকেন্ডে একবার চালায়
 
 
 // --- Daily Reset at 12:00 AM ---
