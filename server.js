@@ -8,6 +8,8 @@ const cron = require("node-cron");
 const User = require("./schemas/userSchema");
 const Bet = require("./schemas/betSchema");
 const Fruit = require("./schemas/fruitSchema");
+const StageControl = require("./schemas/StageControlSchema");
+const stageControlRoutes = require("./routes/stageControl");
 
 const app = express();
 const server = http.createServer(app);
@@ -42,59 +44,27 @@ const roundSchema = new mongoose.Schema({
 });
 const Round = mongoose.model("Round", roundSchema);
 
-// // --- Global Variables ---
-// let roundNumber = 1;
-// let previousIndex = null;
 
-// // --- Init Round Number from DB ---
-// const initRoundNumber = async () => {
-//   const lastRound = await Round.findOne().sort({ roundNumber: -1 });
-//   roundNumber = lastRound ? lastRound.roundNumber + 1 : 1;
-//   console.log("🔁 Starting from round:", roundNumber);
-// };
-// initRoundNumber();
 
-// // --- Round Generator: Emit every 30 seconds ---
-// setInterval(async () => {
-//   let winCardIndex;
-//   let isSpecialRound = roundNumber % 15 === 0 || roundNumber % 20 === 0 || roundNumber % 25 === 0;
+// stage 3 item start
+let stageFlags = { stage56: false, stage57: false, stage58: false }; // ✅ default false
 
-//   do {
-//     if (isSpecialRound) {
-//       // Special round → allow 56–58
-//       winCardIndex = Math.floor(Math.random() * 3) + 56; // 56 to 58
-//     } else {
-//       // Normal round → only 51–55
-//       winCardIndex = Math.floor(Math.random() * 5) + 51; // 51 to 55
-//     }
-//   } while (winCardIndex === previousIndex); // prevent repeat
+// DB থেকে প্রতি 30 মিনিটে নতুন ফ্ল্যাগগুলো আনবে
+const updateStageFlags = async () => {
+  const control = await StageControl.findOne();
+  if (control) {
+    stageFlags = {
+      stage56: control.stage56,
+      stage57: control.stage57,
+      stage58: control.stage58,
+    };
+  }
+};
 
-//   previousIndex = winCardIndex;
+updateStageFlags(); 
+setInterval(updateStageFlags, 60000); 
 
-//   const matchedFruit = await Fruit.findOne({ winCardIndex });
-//   if (!matchedFruit) {
-//     return console.error("❌ Fruit not found for index:", winCardIndex);
-//   }
 
-//   const round = new Round({
-//     winCardIndex,
-//     roundNumber,
-//     fruitName: matchedFruit.name,
-//     fruitImage: matchedFruit.image,
-//   });
-
-//   // await round.save();
-
-//   const data = {
-//     winCardIndex,
-//     roundNumber,
-//     time: new Date().toISOString(),
-//   };
-
-//   console.log("🎯 New Round:", data);
-//   io.emit("new-round", data);
-//   roundNumber++;
-// }, 10000);
 
 // --- Global Variables ---
 let roundNumber = 1;
@@ -116,57 +86,82 @@ initRoundNumber();
 setInterval(async () => {
   let winCardIndex;
 
-  // 🔁 Stage-based card selection
+ 
   switch (stage) {
-    case 'normal':
+    case "normal":
       do {
         winCardIndex = Math.floor(Math.random() * 5) + 51; // 51–55
       } while (winCardIndex === previousIndex);
       stageCounter++;
-      if (stageCounter >= 30) {
-        stage = 'show56';
+      if (stageCounter >= 10) {
+        if (stageFlags.stage56) {
+          stage = "show56";
+        } else {
+          stage = "normal"; // skip করে আবার normal-এ
+        }
         stageCounter = 0;
       }
       break;
 
-    case 'show56':
+    case "show56":
+      if (!stageFlags.stage56) {
+        stage = "after56";
+        break;
+      }
       winCardIndex = 56;
-      stage = 'after56';
+      stage = "after56";
       break;
 
-    case 'after56':
+    case "after56":
       do {
         winCardIndex = Math.floor(Math.random() * 5) + 51;
       } while (winCardIndex === previousIndex);
       stageCounter++;
-      if (stageCounter >= 30) {
-        stage = 'show57';
+      if (stageCounter >= 10) {
+        if (stageFlags.stage57) {
+          stage = "show57";
+        } else {
+          stage = "normal";
+        }
         stageCounter = 0;
       }
       break;
 
-    case 'show57':
+    case "show57":
+      if (!stageFlags.stage57) {
+        stage = "after57";
+        break;
+      }
       winCardIndex = 57;
-      stage = 'after57';
+      stage = "after57";
       break;
 
-    case 'after57':
+    case "after57":
       do {
         winCardIndex = Math.floor(Math.random() * 5) + 51;
       } while (winCardIndex === previousIndex);
       stageCounter++;
-      if (stageCounter >= 30) {
-        stage = 'show58';
+      if (stageCounter >= 10) {
+        if (stageFlags.stage58) {
+          stage = "show58";
+        } else {
+          stage = "normal";
+        }
         stageCounter = 0;
       }
       break;
 
-    case 'show58':
+    case "show58":
+      if (!stageFlags.stage58) {
+        stage = "normal";
+        break;
+      }
       winCardIndex = 58;
-      stage = 'normal'; // Loop back
+      stage = "normal";
       stageCounter = 0;
       break;
   }
+  
 
   previousIndex = winCardIndex;
 
@@ -183,7 +178,7 @@ setInterval(async () => {
     fruitName: matchedFruit.name,
     fruitImage: matchedFruit.image,
   });
-  await round.save(); // ✅ Save চালু রাখলাম
+  // await round.save(); // ✅ Save চালু রাখলাম
 
   // 📡 Emit to Frontend
   const data = {
@@ -195,10 +190,10 @@ setInterval(async () => {
     time: new Date().toISOString(),
   };
   console.log("🎯 New Round:", data);
-  io.emit("new-round", data);
+  // io.emit("new-round", data);
 
   roundNumber++;
-}, 30000); // প্রতি 10 সেকেন্ডে একবার চালায়
+}, 10000); // প্রতি 30 সেকেন্ডে একবার চালায়
 
 
 // --- Daily Reset at 12:00 AM ---
@@ -219,6 +214,7 @@ cron.schedule("0 0 * * *", async () => {
 app.get("/", (req, res) => {
   res.send("🎉 Server is running");
 });
+app.use("/stage", stageControlRoutes);
 
 app.get("/rounds", async (req, res) => {
   try {
@@ -229,24 +225,7 @@ app.get("/rounds", async (req, res) => {
   }
 });
 
-app.post("/signup", async (req, res) => {
-  try {
-    const { googleId, name, email, photo } = req.body;
-    let user = await User.findOne({ email });
 
-    if (user) {
-      return res.status(200).json({ message: "User logged in", user });
-    }
-
-    user = new User({ googleId, name, email, photo, balance: 200 });
-    await user.save();
-
-    res.status(201).json({ message: "Signup successful", user });
-  } catch (err) {
-    console.error("Signup Error:", err);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
 
 app.post("/placeBet", async (req, res) => {
   try {
@@ -283,11 +262,11 @@ app.post("/bet", async (req, res) => {
     const round = await Round.findOne({ roundNumber });
     if (!round) return res.status(400).json({ error: "Invalid round" });
 
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    // const user = await User.findById(userId);
+    // if (!user) return res.status(404).json({ error: "User not found" });
 
-    user.balance += winAmount;
-    await user.save();
+    // user.balance += winAmount;
+    // await user.save();
 
     const bet = new Bet({ userId, roundNumber, winAmount });
     await bet.save();
@@ -303,27 +282,9 @@ app.post("/bet", async (req, res) => {
   }
 });
 
-app.get("/user/:id", async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ error: "User not found" });
-
-    res.status(200).json({
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      balance: user.balance,
-      photo: user.photo,
-    });
-  } catch (err) {
-    console.error("User Fetch Error:", err);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
 app.get("/winners/:roundNumber", async (req, res) => {
-  console.log('req.params',req.params);
-  
+  console.log("req.params", req.params);
+
   try {
     const { roundNumber } = req.params;
 
@@ -366,13 +327,51 @@ app.get("/winners/:roundNumber", async (req, res) => {
       };
     });
 
-
     res.status(200).json({ roundNumber, winners });
   } catch (err) {
     console.error("Winner API Error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+app.post("/signup", async (req, res) => {
+  try {
+    const { googleId, name, email, photo } = req.body;
+    let user = await User.findOne({ email });
+
+    if (user) {
+      return res.status(200).json({ message: "User logged in", user });
+    }
+
+    user = new User({ googleId, name, email, photo, balance: 200 });
+    await user.save();
+
+    res.status(201).json({ message: "Signup successful", user });
+  } catch (err) {
+    console.error("Signup Error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/user/:id", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    res.status(200).json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      balance: user.balance,
+      photo: user.photo,
+    });
+  } catch (err) {
+    console.error("User Fetch Error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
 
 
 // --- Start Server ---
