@@ -1,11 +1,11 @@
 const mongoose = require("mongoose");
 
 const betSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  userId: { type: String, required: true },
   roundNumber: { type: Number, required: true },
   winAmount: { type: Number, required: true },
-  // itemName: { type: String, required: true },
-  // itemId: { type: String, required: true },
+  fullname: { type: String,  },
+  profilePic: { type: String,  },
   createdAt: { type: Date, default: Date.now },
 });
 
