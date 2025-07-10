@@ -47,15 +47,28 @@ const roundSchema = new mongoose.Schema({
 const Round = mongoose.model("Round", roundSchema);
 
 
-
-// stage 3 item start
-let stageFlags = { stage56: false, stage57: false, stage58: false }; // ✅ default false
+// global variable 
+let stageFlags = {
+  stage51: false,
+  stage52: false,
+  stage53: false,
+  stage54: false,
+  stage55: false,
+  stage56: false,
+  stage57: false,
+  stage58: false,
+};
 
 // DB থেকে প্রতি 30 মিনিটে নতুন ফ্ল্যাগগুলো আনবে
 const updateStageFlags = async () => {
   const control = await StageControl.findOne();
   if (control) {
     stageFlags = {
+      stage51: control.stage51,
+      stage52: control.stage52,
+      stage53: control.stage53,
+      stage54: control.stage54,
+      stage55: control.stage55,
       stage56: control.stage56,
       stage57: control.stage57,
       stage58: control.stage58,
@@ -63,15 +76,12 @@ const updateStageFlags = async () => {
   }
 };
 updateStageFlags(); 
-setInterval(updateStageFlags, 60000); 
+setInterval(updateStageFlags, 30000); 
 
 // --- Global Variables ---
 let roundNumber = 1;
 let previousIndex = null;
-
-// 🔁 Stage system controller
-let stageCounter = 0;
-let stage = 'normal'; // 'normal', 'show56', 'after56', 'show57', 'after57', 'show58'
+let stage = 'normal'; 
 
 // --- Init Round Number from DB ---
 const initRoundNumber = async () => {
@@ -81,86 +91,28 @@ const initRoundNumber = async () => {
 };
 initRoundNumber();
 
-// --- Round Generator: Emit every 10 seconds ---
+// round stage control and socket.io login
 setInterval(async () => {
   let winCardIndex;
-
- 
-  switch (stage) {
-    case "normal":
-      do {
-        winCardIndex = Math.floor(Math.random() * 5) + 51; // 51–55
-      } while (winCardIndex === previousIndex);
-      stageCounter++;
-      if (stageCounter >= 10) {
-        if (stageFlags.stage56) {
-          stage = "show56";
-        } else {
-          stage = "normal"; // skip করে আবার normal-এ
-        }
-        stageCounter = 0;
-      }
-      break;
-
-    case "show56":
-      if (!stageFlags.stage56) {
-        stage = "after56";
-        break;
-      }
-      winCardIndex = 56;
-      stage = "after56";
-      break;
-
-    case "after56":
-      do {
-        winCardIndex = Math.floor(Math.random() * 5) + 51;
-      } while (winCardIndex === previousIndex);
-      stageCounter++;
-      if (stageCounter >= 10) {
-        if (stageFlags.stage57) {
-          stage = "show57";
-        } else {
-          stage = "normal";
-        }
-        stageCounter = 0;
-      }
-      break;
-
-    case "show57":
-      if (!stageFlags.stage57) {
-        stage = "after57";
-        break;
-      }
-      winCardIndex = 57;
-      stage = "after57";
-      break;
-
-    case "after57":
-      do {
-        winCardIndex = Math.floor(Math.random() * 5) + 51;
-      } while (winCardIndex === previousIndex);
-      stageCounter++;
-      if (stageCounter >= 10) {
-        if (stageFlags.stage58) {
-          stage = "show58";
-        } else {
-          stage = "normal";
-        }
-        stageCounter = 0;
-      }
-      break;
-
-    case "show58":
-      if (!stageFlags.stage58) {
-        stage = "normal";
-        break;
-      }
-      winCardIndex = 58;
-      stage = "normal";
-      stageCounter = 0;
-      break;
+  // Step 1: Build enabled list
+  const availableIndices = [];
+  for (let i = 51; i <= 58; i++) {
+    if (stageFlags[`stage${i}`]) {
+      availableIndices.push(i);
+    }
   }
-  
+
+  // Step 2: Check if at least one stage is active
+  if (availableIndices.length === 0) {
+    console.log("⚠️ No stage enabled, skipping round.");
+    return;
+  }
+
+  // Step 3: Pick random from enabled only
+  do {
+    const rand = Math.floor(Math.random() * availableIndices.length);
+    winCardIndex = availableIndices[rand];
+  } while (winCardIndex === previousIndex);
 
   previousIndex = winCardIndex;
 
