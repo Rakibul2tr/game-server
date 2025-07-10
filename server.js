@@ -36,8 +36,8 @@ app.use(cors());
 //   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
   mongoose
-    .connect("mongodb://jkadmin:jklivegame@localhost:27017/jklive?authSource=admin")
-    // .connect("mongodb://jkadmin:jklivegame@91.108.105.238:27017/jklive?authSource=admin")
+    // .connect("mongodb://jkadmin:jklivegame@localhost:27017/jklive?authSource=admin")
+    .connect("mongodb://jkadmin:jklivegame@91.108.105.238:27017/jklive?authSource=admin")
     .then(() => console.log("✅ MongoDB connected"))
     .catch((err) => console.error("❌ MongoDB connection failed:", err));
 // --- Schema Definitions ---
