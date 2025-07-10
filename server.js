@@ -4,14 +4,16 @@ const cors = require("cors");
 const { Server } = require("socket.io");
 const mongoose = require("mongoose");
 const cron = require("node-cron");
+require("dotenv").config();
 
 const User = require("./schemas/userSchema");
 const Bet = require("./schemas/betSchema");
 const Fruit = require("./schemas/fruitSchema");
 const StageControl = require("./schemas/StageControlSchema");
 const stageControlRoutes = require("./routes/stageControl");
+const betRoutes = require("./routes/bet");
+
 const axios = require("axios").default;
-const { log } = require("console");
 
 const app = express();
 const server = http.createServer(app);
@@ -36,8 +38,9 @@ app.use(cors());
 //   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
   mongoose
-    // .connect("mongodb://jkadmin:jklivegame@localhost:27017/jklive?authSource=admin")
-    .connect("mongodb://jkadmin:jklivegame@91.108.105.238:27017/jklive?authSource=admin")
+    .connect(process.env.MONGO_URI)
+    // .connect("mongodb://jkadmin:jklivegame@91.108.105.238:27017/jklive?authSource=admin")
+    .then(() => console.log("✅ MongoDB connected"))
     .then(() => console.log("✅ MongoDB connected"))
     .catch((err) => console.error("❌ MongoDB connection failed:", err));
 // --- Schema Definitions ---
@@ -171,6 +174,7 @@ app.get("/", (req, res) => {
   res.send("🎉 Server is running");
 });
 app.use("/stage", stageControlRoutes);
+app.use("/bets", betRoutes);
 
 app.get("/rounds", async (req, res) => {
   try {
