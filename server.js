@@ -28,13 +28,18 @@ app.use(express.json());
 app.use(cors());
 
 // Connect MongoDB
-mongoose
-  .connect(
-    "mongodb+srv://rakibul2tr:rdUYI4rm70R2YsS7@cluster0.mnjws4o.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-  )
-  .then(() => console.log("✅ MongoDB connected successfully"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
+// mongoose
+//   .connect(
+//     "mongodb+srv://rakibul2tr:rdUYI4rm70R2YsS7@cluster0.mnjws4o.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+//   )
+//   .then(() => console.log("✅ MongoDB connected successfully"))
+//   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
+  mongoose
+    .connect("mongodb://jkadmin:jklivegame@localhost:27017/jklive?authSource=admin")
+    // .connect("mongodb://jkadmin:jklivegame@91.108.105.238:27017/jklive?authSource=admin")
+    .then(() => console.log("✅ MongoDB connected"))
+    .catch((err) => console.error("❌ MongoDB connection failed:", err));
 // --- Schema Definitions ---
 
 const roundSchema = new mongoose.Schema({
