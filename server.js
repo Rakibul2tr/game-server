@@ -6,12 +6,12 @@ const mongoose = require("mongoose");
 const cron = require("node-cron");
 require("dotenv").config();
 
-const User = require("./schemas/userSchema");
 const Bet = require("./schemas/betSchema");
 const Fruit = require("./schemas/fruitSchema");
 const StageControl = require("./schemas/StageControlSchema");
 const stageControlRoutes = require("./routes/stageControl");
 const betRoutes = require("./routes/bet");
+const fruitData = require("./fruitData");
 
 const axios = require("axios").default;
 
@@ -37,12 +37,26 @@ app.use(cors());
 //   .then(() => console.log("✅ MongoDB connected successfully"))
 //   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
+// insert fruity data 
+const seedFruits = async () => {
+  for (const fruit of fruitData) {
+    const exists = await Fruit.findOne({ winCardIndex: fruit.winCardIndex });
+    if (!exists) {
+      await Fruit.create(fruit);
+      console.log(`✅ Inserted: ${fruit.name}`);
+    } else {
+      console.log(`🟡 Already exists: ${fruit.name}`);
+    }
+  }
+};
   mongoose
     .connect(process.env.MONGO_URI)
     // .connect("mongodb://jkadmin:jklivegame@91.108.105.238:27017/jklive?authSource=admin")
     .then(() => console.log("✅ MongoDB connected"))
     .then(() => console.log("✅ MongoDB connected"))
+    
     .catch((err) => console.error("❌ MongoDB connection failed:", err));
+    seedFruits();
 // --- Schema Definitions ---
 
 const roundSchema = new mongoose.Schema({
@@ -57,8 +71,8 @@ const Round = mongoose.model("Round", roundSchema);
 
 // global variable 
 let stageFlags = {
-  stage51: false,
-  stage52: false,
+  stage51: true,
+  stage52: true,
   stage53: false,
   stage54: false,
   stage55: false,
@@ -167,6 +181,7 @@ cron.schedule("0 0 * * *", async () => {
     console.error("❌ Round reset failed:", err);
   }
 });
+
 
 // --- Routes ---
 

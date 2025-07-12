@@ -2,8 +2,8 @@ const mongoose = require("mongoose");
 
 const StageControlSchema = new mongoose.Schema(
   {
-    stage51: { type: Boolean, default: false },
-    stage52: { type: Boolean, default: false },
+    stage51: { type: Boolean, default: true },
+    stage52: { type: Boolean, default: true },
     stage53: { type: Boolean, default: false },
     stage54: { type: Boolean, default: false },
     stage55: { type: Boolean, default: false },
