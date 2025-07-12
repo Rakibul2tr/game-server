@@ -49,6 +49,17 @@ const seedFruits = async () => {
     }
   }
 };
+// insert stage 
+const insertDefaultStageFlags = async () => {
+  const exists = await StageControl.findOne();
+  if (!exists) {
+    await StageControl.create({}); // defaults will auto-fill
+    console.log("✅ Default StageControl inserted");
+  } else {
+    console.log("🟡 StageControl already exists, skipping insert");
+  }
+};
+
   mongoose
     .connect(process.env.MONGO_URI)
     // .connect("mongodb://jkadmin:jklivegame@91.108.105.238:27017/jklive?authSource=admin")
@@ -57,6 +68,7 @@ const seedFruits = async () => {
     
     .catch((err) => console.error("❌ MongoDB connection failed:", err));
     seedFruits();
+    insertDefaultStageFlags();
 // --- Schema Definitions ---
 
 const roundSchema = new mongoose.Schema({
