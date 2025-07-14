@@ -182,17 +182,17 @@ setInterval(async () => {
 
 
 // --- Daily Reset at 12:00 AM ---
-cron.schedule("0 0 * * *", async () => {
-  try {
-    console.log("⏰ Resetting round count and deleting all old rounds...");
-    await Round.deleteMany({});
-    await Bet.deleteMany({})
-    roundNumber = 1;
-    console.log("✅ Round reset successful");
-  } catch (err) {
-    console.error("❌ Round reset failed:", err);
-  }
-});
+// cron.schedule("0 0 * * *", async () => {
+//   try {
+//     console.log("⏰ Resetting round count and deleting all old rounds...");
+//     await Round.deleteMany({});
+//     await Bet.deleteMany({})
+//     roundNumber = 1;
+//     console.log("✅ Round reset successful");
+//   } catch (err) {
+//     console.error("❌ Round reset failed:", err);
+//   }
+// });
 
 
 // --- Routes ---
