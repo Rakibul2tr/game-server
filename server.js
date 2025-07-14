@@ -85,9 +85,9 @@ const Round = mongoose.model("Round", roundSchema);
 let stageFlags = {
   stage51: true,
   stage52: true,
-  stage53: false,
-  stage54: false,
-  stage55: false,
+  stage53: true,
+  stage54: true,
+  stage55: true,
   stage56: false,
   stage57: false,
   stage58: false,
