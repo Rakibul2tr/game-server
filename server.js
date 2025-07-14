@@ -283,21 +283,45 @@ app.post("/bet", async (req, res) => {
 
 app.get("/winners/:roundNumber", async (req, res) => {
   try {
-    const roundNumber = parseInt(req.params.roundNumber);
-    console.log("req.params", roundNumber);
-    // Find bets of that round, sorted by winAmount descending
+    const roundNumber = Number(req.params.roundNumber);
+    console.log("req.params.roundNumber:", req.params.roundNumber);
+    console.log("Converted to Number:", roundNumber);
+
+    if (isNaN(roundNumber)) {
+      return res.status(400).json({ error: "Invalid round number" });
+    }
+
     const topBets = await Bet.find({ roundNumber })
       .sort({ winAmount: -1 })
       .limit(5)
-      .lean(); // lean makes it faster
+      .lean();
 
-      const Bets = topBets.filter(bet => bet.winAmount > 0);
+    const Bets = topBets.filter((bet) => bet.winAmount > 0);
     res.status(200).json({ roundNumber, Bets });
   } catch (err) {
     console.error("Winner API Error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+
+// app.get("/winners/:roundNumber", async (req, res) => {
+//   try {
+//     const roundNumber = parseInt(req.params.roundNumber);
+//     console.log("req.params", roundNumber);
+//     // Find bets of that round, sorted by winAmount descending
+//     const topBets = await Bet.find({ roundNumber })
+//       .sort({ winAmount: -1 })
+//       .limit(5)
+//       .lean(); // lean makes it faster
+
+//       const Bets = topBets.filter(bet => bet.winAmount > 0);
+//     res.status(200).json({ roundNumber, Bets });
+//   } catch (err) {
+//     console.error("Winner API Error:", err);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// });
 
 
 
