@@ -29,15 +29,7 @@ const io = new Server(server, {
 app.use(express.json());
 app.use(cors());
 
-// Connect MongoDB
-// mongoose
-//   .connect(
-//     "mongodb+srv://rakibul2tr:rdUYI4rm70R2YsS7@cluster0.mnjws4o.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-//   )
-//   .then(() => console.log("✅ MongoDB connected successfully"))
-//   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
-// insert fruity data 
 const seedFruits = async () => {
   for (const fruit of fruitData) {
     const exists = await Fruit.findOne({ winCardIndex: fruit.winCardIndex });
@@ -49,7 +41,7 @@ const seedFruits = async () => {
     }
   }
 };
-// insert stage 
+// insert stage
 const insertDefaultStageFlags = async () => {
   const exists = await StageControl.findOne();
   if (!exists) {
@@ -59,6 +51,16 @@ const insertDefaultStageFlags = async () => {
     console.log("🟡 StageControl already exists, skipping insert");
   }
 };
+// Connect MongoDB
+// mongoose
+//   .connect(
+//     "mongodb+srv://rakibul2tr:rdUYI4rm70R2YsS7@cluster0.mnjws4o.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+//   )
+//   .then(() => console.log("✅ MongoDB connected successfully"))
+//   .catch((err) => console.error("❌ MongoDB connection error:", err));
+
+// insert fruity data 
+
 
   mongoose
     .connect(process.env.MONGO_URI)
@@ -126,10 +128,11 @@ const initRoundNumber = async () => {
 initRoundNumber();
 
 // round stage control and socket.io login
+const availableIndices = [];
 setInterval(async () => {
   let winCardIndex;
   // Step 1: Build enabled list
-  const availableIndices = [];
+  
   for (let i = 51; i <= 58; i++) {
     if (stageFlags[`stage${i}`]) {
       availableIndices.push(i);
@@ -247,25 +250,33 @@ app.post("/placeBet", async (req, res) => {
 
 app.post("/bet", async (req, res) => {
   try {
-    const { userId, roundNumber, winAmount, token, fullname, profilePic } =
-      req.body;
+    const {
+      userId,
+      roundNumber,
+      winAmount,
+      fullname,
+      profilePic,
+    } = req.body;
 
-    const round = await Round.findOne({ roundNumber });
-    if (!round) return res.status(400).json({ error: "Invalid round" });
+    // const round = await Round.findOne({ roundNumber });
+    // if (!round) return res.status(400).json({ error: "Invalid round" });
+
+    
+    
 
     // Step 2: First server এ balance update
-    const updateResponse = await axios.patch(
-      `https://api.arjklive.xyz/add-remove-diamond/add/${userId}`,
-      {
-        diamond: parseInt(winAmount), // 👈 Body data
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`, // 👈 Replace with actual token
-          "Content-Type": "application/json", // Optional, axios adds it automatically
-        },
-      }
-    );
+    // const updateResponse = await axios.patch(
+    //   `https://api.arjklive.xyz/add-remove-diamond/add/${userId}`,
+    //   {
+    //     diamond: parseInt(winAmount), // 👈 Body data
+    //   },
+    //   {
+    //     headers: {
+    //       Authorization: `Bearer ${token}`, // 👈 Replace with actual token
+    //       "Content-Type": "application/json", // Optional, axios adds it automatically
+    //     },
+    //   }
+    // );
 
     const bet = new Bet({ userId, roundNumber, winAmount,fullname,profilePic });
     await bet.save();
@@ -284,8 +295,6 @@ app.post("/bet", async (req, res) => {
 app.get("/winners/:roundNumber", async (req, res) => {
   try {
     const roundNumber = Number(req.params.roundNumber);
-    console.log("req.params.roundNumber:", req.params.roundNumber);
-    console.log("Converted to Number:", roundNumber);
 
     if (isNaN(roundNumber)) {
       return res.status(400).json({ error: "Invalid round number" });
