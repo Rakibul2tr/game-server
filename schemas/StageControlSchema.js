@@ -10,6 +10,8 @@ const StageControlSchema = new mongoose.Schema(
     stage56: { type: Boolean, default: false },
     stage57: { type: Boolean, default: false },
     stage58: { type: Boolean, default: false },
+    stage59: { type: Boolean, default: false },
+    stage60: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

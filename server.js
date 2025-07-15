@@ -93,6 +93,8 @@ let stageFlags = {
   stage56: false,
   stage57: false,
   stage58: false,
+  stage59: false,
+  stage60: false,
 };
 
 // DB থেকে প্রতি 30 মিনিটে নতুন ফ্ল্যাগগুলো আনবে
@@ -108,6 +110,8 @@ const updateStageFlags = async () => {
       stage56: control.stage56,
       stage57: control.stage57,
       stage58: control.stage58,
+      stage59: control.stage59,
+      stage60: control.stage60,
     };
   }
 };

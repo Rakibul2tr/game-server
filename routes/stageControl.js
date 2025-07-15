@@ -23,6 +23,8 @@ router.post("/update-status", async (req, res) => {
   control.stage56 = req.body.stage56 ?? control.stage56;
   control.stage57 = req.body.stage57 ?? control.stage57;
   control.stage58 = req.body.stage58 ?? control.stage58;
+  control.stage59 = req.body.stage59 ?? control.stage59;
+  control.stage60 = req.body.stage60 ?? control.stage60;
   await control.save();
   // console.log("✅ Saved control:", control);
   res.json({ message: "✅ Stage updated successfully", control });
