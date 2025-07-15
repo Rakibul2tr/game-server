@@ -43,13 +43,14 @@ const seedFruits = async () => {
 };
 // insert stage
 const insertDefaultStageFlags = async () => {
-  const exists = await StageControl.findOne();
-  if (!exists) {
-    await StageControl.create({}); // defaults will auto-fill
-    console.log("✅ Default StageControl inserted");
-  } else {
-    console.log("🟡 StageControl already exists, skipping insert");
-  }
+ await StageControl.create({});
+  // const exists = await StageControl.findOne();
+  // if (!exists) {
+  //   await StageControl.create({}); // defaults will auto-fill
+  //   console.log("✅ Default StageControl inserted");
+  // } else {
+  //   console.log("🟡 StageControl already exists, skipping insert");
+  // }
 };
 // Connect MongoDB
 // mongoose
