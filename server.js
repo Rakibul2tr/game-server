@@ -10,6 +10,7 @@ const Bet = require("./schemas/betSchema");
 const Fruit = require("./schemas/fruitSchema");
 const StageControl = require("./schemas/StageControlSchema");
 const stageControlRoutes = require("./routes/stageControl");
+const winnerControlRoute = require("./routes/winnerControlRoute")
 const betRoutes = require("./routes/bet");
 const fruitData = require("./fruitData");
 
@@ -43,14 +44,13 @@ const seedFruits = async () => {
 };
 // insert stage
 const insertDefaultStageFlags = async () => {
- await StageControl.create({});
-  // const exists = await StageControl.findOne();
-  // if (!exists) {
-  //   await StageControl.create({}); // defaults will auto-fill
-  //   console.log("✅ Default StageControl inserted");
-  // } else {
-  //   console.log("🟡 StageControl already exists, skipping insert");
-  // }
+  const exists = await StageControl.findOne();
+  if (!exists) {
+    await StageControl.create({}); // defaults will auto-fill
+    console.log("✅ Default StageControl inserted");
+  } else {
+    console.log("🟡 StageControl already exists, skipping insert");
+  }
 };
 // Connect MongoDB
 // mongoose
@@ -59,8 +59,6 @@ const insertDefaultStageFlags = async () => {
 //   )
 //   .then(() => console.log("✅ MongoDB connected successfully"))
 //   .catch((err) => console.error("❌ MongoDB connection error:", err));
-
-// insert fruity data 
 
 
   mongoose
@@ -209,6 +207,7 @@ app.get("/", (req, res) => {
   res.send("🎉 Server is running");
 });
 app.use("/stage", stageControlRoutes);
+app.use("/winner-control", winnerControlRoute);
 app.use("/bets", betRoutes);
 
 app.get("/rounds", async (req, res) => {
@@ -219,9 +218,19 @@ app.get("/rounds", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch rounds" });
   }
 });
+// 🔴 DELETE: Clear all past round
+app.delete("/past-rounds-delete", async (req, res) => {
+  try {
+    await Round.deleteMany({});
+    roundNumber = 1;
+    res.json({ success: true, message: "All past round deleted successfully" });
+  } catch (error) {
+    console.error("❌ Failed to delete round:", error);
+    res.status(500).json({ success: false, message: "Failed to delete round" });
+  }
+});
 
-
-
+// cutting balance api
 app.post("/placeBet", async (req, res) => {
   try {
     const { userId, betAmount,token } = req.body;
@@ -253,6 +262,7 @@ app.post("/placeBet", async (req, res) => {
   }
 });
 
+// attend to game api
 app.post("/bet", async (req, res) => {
   try {
     const {
@@ -297,6 +307,7 @@ app.post("/bet", async (req, res) => {
   }
 });
 
+// winner getting
 app.get("/winners/:roundNumber", async (req, res) => {
   try {
     const roundNumber = Number(req.params.roundNumber);
